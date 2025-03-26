@@ -249,4 +249,182 @@ int main() {
 
     return 0;
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft-Like Game - Title Screen</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="title-screen">
+        <h1 id="game-title">Minecraft-Like Game</h1>
+        <button id="start-button" onclick="startGame()">Start Game</button>
+    </div>
 
+    <script src="script.js"></script>
+</body>
+</html>
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+}
+
+#title-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: #3e8e41; /* Background color for title screen */
+    color: white;
+    text-align: center;
+}
+
+#game-title {
+    font-size: 60px;
+    margin-bottom: 20px;
+    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.7);
+}
+
+#start-button {
+    font-size: 24px;
+    padding: 15px 30px;
+    background-color: #ffcc00;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#start-button:hover {
+    background-color: #e6b800;
+}
+// Function to handle the start of the game
+function startGame() {
+    // Hide the title screen
+    document.getElementById('title-screen').style.display = 'none';
+
+    // Here you can add the logic to start the game, such as loading the main game scene
+    alert('Game is starting...');
+
+    // For example, redirect to the main game page or initialize the game logic:
+    // window.location.href = "game.html"; // if you have a separate page
+    // or load the game content dynamically here.
+}
+#title-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-image: url('background-image.jpg'); /* Add your image here */
+    background-size: cover;
+    background-position: center;
+    color: white;
+    text-align: center;
+}
+npm install --save-dev typescript
+npx tsc --init
+// script.ts
+
+function startGame(): void {
+    // Hide the title screen
+    const titleScreen = document.getElementById('title-screen');
+    if (titleScreen) {
+        titleScreen.style.display = 'none';
+    }
+
+    // Add actual game start logic
+    alert('Game is starting...');
+}
+
+document.getElementById('start-button')?.addEventListener('click', startGame);
+npx tsc script.ts
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Generation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <canvas id="worldCanvas"></canvas>
+    <script src="perlin-noise.js"></script>
+    <script src="worldGen.js"></script>
+</body>
+</html>
+body {
+    margin: 0;
+    overflow: hidden;
+}
+const canvas = document.getElementById("worldCanvas");
+const ctx = canvas.getContext("2d");
+
+const tileSize = 20; // Each tile will be 20x20px
+const worldWidth = 800; // World width in pixels
+const worldHeight = 600; // World height in pixels
+
+canvas.width = worldWidth;
+canvas.height = worldHeight;
+
+// Simple Perlin Noise-based world generation
+function generateWorld() {
+    for (let y = 0; y < worldHeight / tileSize; y++) {
+        for (let x = 0; x < worldWidth / tileSize; x++) {
+            const noiseValue = perlin(x, y);
+            const terrainType = getTerrainType(noiseValue);
+            drawTile(x, y, terrainType);
+        }
+    }
+}
+
+// Function to decide terrain type based on Perlin noise value
+function getTerrainType(noiseValue) {
+    if (noiseValue < 0.2) {
+        return "water"; // Water
+    } else if (noiseValue < 0.4) {
+        return "sand"; // Sand
+    } else if (noiseValue < 0.7) {
+        return "grass"; // Grass
+    } else {
+        return "mountain"; // Mountains
+    }
+}
+
+// Draw each tile based on the terrain type
+function drawTile(x, y, terrainType) {
+    const color = getTileColor(terrainType);
+
+    // Draw the tile at the correct position
+    ctx.fillStyle = color;
+    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+}
+
+// Return color based on terrain type
+function getTileColor(terrainType) {
+    switch (terrainType) {
+        case "water":
+            return "#1E90FF"; // Blue for water
+        case "sand":
+            return "#FFD700"; // Yellow for sand
+        case "grass":
+            return "#228B22"; // Green for grass
+        case "mountain":
+            return "#8B4513"; // Brown for mountains
+        default:
+            return "#FFFFFF"; // White for unknown terrain
+    }
+}
+
+// Generate the world on page load
+generateWorld();
