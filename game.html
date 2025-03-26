@@ -428,3 +428,535 @@ function getTileColor(terrainType) {
 
 // Generate the world on page load
 generateWorld();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Loading Screen</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div id="loader"></div>
+        <p>Loading World...</p>
+        <div id="progress-bar">
+            <div id="progress"></div>
+        </div>
+    </div>
+
+    <!-- Game Content (Hidden until loading is complete) -->
+    <canvas id="worldCanvas"></canvas>
+/* Basic reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+#loading-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #2c3e50;
+    color: white;
+    z-index: 1000;
+    text-align: center;
+}
+
+#loader {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#progress-bar {
+    width: 80%;
+    height: 10px;
+    background-color: #ccc;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+#progress {
+    height: 100%;
+    background-color: #27ae60;
+    width: 0;
+    border-radius: 5px;
+    transition: width 0.2s;
+}
+
+canvas {
+    display: none; /* Initially hidden */
+    background-color: #a3d9ff;
+}
+// Get the loading elements
+const loadingScreen = document.getElementById('loading-screen');
+const progressBar = document.getElementById('progress');
+const canvas = document.getElementById('worldCanvas');
+
+// Simulate world loading (e.g., generating world, assets, etc.)
+function loadGame() {
+    let progress = 0;
+
+    // Simulate a loading process, e.g., world generation
+    const interval = setInterval(() => {
+        progress += 5; // Increase the progress by 5% each interval
+
+        // Update progress bar width
+        progressBar.style.width = `${progress}%`;
+
+        // Check if loading is complete
+        if (progress >= 100) {
+            clearInterval(interval); // Stop the loading interval
+            startGame(); // Start the game
+        }
+    }, 100); // Update every 100ms
+}
+
+// Start the game (hide the loading screen, reveal canvas)
+function startGame() {
+    // Hide the loading screen
+    loadingScreen.style.display = 'none';
+
+    // Reveal the game canvas and start generating the world
+    canvas.style.display = 'block';
+
+    // Generate the world once the game starts
+    generateWorld();
+}
+
+// Start loading the game
+loadGame();
+// You can reuse the world generation code we wrote earlier
+const canvas = document.getElementById("worldCanvas");
+const ctx = canvas.getContext("2d");
+
+const tileSize = 20;
+const worldWidth = 800;
+const worldHeight = 600;
+
+canvas.width = worldWidth;
+canvas.height = worldHeight;
+
+function generateWorld() {
+    for (let y = 0; y < worldHeight / tileSize; y++) {
+        for (let x = 0; x < worldWidth / tileSize; x++) {
+            const noiseValue = perlin(x, y); // Using Perlin noise
+            const terrainType = getTerrainType(noiseValue);
+            drawTile(x, y, terrainType);
+        }
+    }
+}
+
+function getTerrainType(noiseValue) {
+    if (noiseValue < 0.2) {
+        return "water";
+    } else if (noiseValue < 0.4) {
+        return "sand";
+    } else if (noiseValue < 0.7) {
+        return "grass";
+    } else {
+        return "mountain";
+    }
+}
+
+function drawTile(x, y, terrainType) {
+    const color = getTileColor(terrainType);
+    ctx.fillStyle = color;
+    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+}
+
+function getTileColor(terrainType) {
+    switch (terrainType) {
+        case "water":
+            return "#1E90FF"; 
+        case "sand":
+            return "#FFD700";
+        case "grass":
+            return "#228B22";
+        case "mountain":
+            return "#8B4513";
+        default:
+            return "#FFFFFF";
+    }
+}
+// Get the canvas and its context
+const canvas = document.getElementById("worldCanvas");
+const ctx = canvas.getContext("2d");
+
+const tileSize = 20; // Size of each tile (20x20px)
+const worldWidth = 800; // Width of the world in pixels
+const worldHeight = 600; // Height of the world in pixels
+
+canvas.width = worldWidth;
+canvas.height = worldHeight;
+
+// Load textures for each terrain type
+const textures = {
+    water: new Image(),
+    sand: new Image(),
+    grass: new Image(),
+    mountain: new Image(),
+};
+
+// Load texture images
+textures.water.src = 'textures/water.png';
+textures.sand.src = 'textures/sand.png';
+textures.grass.src = 'textures/grass.png';
+textures.mountain.src = 'textures/mountain.png';
+
+// Function to generate the world and draw textures
+function generateWorld() {
+    let loadedCount = 0;
+    const totalTextures = Object.keys(textures).length;
+
+    // Check if all textures are loaded before drawing the world
+    for (const texture in textures) {
+        textures[texture].onload = () => {
+            loadedCount++;
+            if (loadedCount === totalTextures) {
+                drawWorld(); // Start drawing the world when all textures are loaded
+            }
+        };
+    }
+}
+
+// Draw the world once all textures are loaded
+function drawWorld() {
+    for (let y = 0; y < worldHeight / tileSize; y++) {
+        for (let x = 0; x < worldWidth / tileSize; x++) {
+            const noiseValue = perlin(x, y); // Generate a noise value for terrain
+            const terrainType = getTerrainType(noiseValue);
+            drawTile(x, y, terrainType); // Draw the tile with the appropriate texture
+        }
+    }
+}
+
+// Determine terrain type based on Perlin noise value
+function getTerrainType(noiseValue) {
+    if (noiseValue < 0.2) {
+        return "water"; // Water
+    } else if (noiseValue < 0.4) {
+        return "sand"; // Sand
+    } else if (noiseValue < 0.7) {
+        return "grass"; // Grass
+    } else {
+        return "mountain"; // Mountains
+    }
+}
+
+// Draw a tile with the correct texture
+function drawTile(x, y, terrainType) {
+    const texture = textures[terrainType];
+    // Draw the texture on the tile
+    ctx.drawImage(texture, x * tileSize, y * tileSize, tileSize, tileSize);
+}
+
+// Start the world generation once loading is complete
+generateWorld();
+/textures/water.png
+/textures/sand.png
+/textures/grass.png
+/textures/mountain.png
+// Get the canvas and its context
+const canvas = document.getElementById("worldCanvas");
+const ctx = canvas.getContext("2d");
+
+const tileSize = 20; // Size of each tile (20x20px)
+const worldWidth = 800; // Width of the world in pixels
+const worldHeight = 600; // Height of the world in pixels
+
+canvas.width = worldWidth;
+canvas.height = worldHeight;
+
+// Load textures for each terrain type
+const textures = {
+    water: new Image(),
+    sand: new Image(),
+    grass: new Image(),
+    mountain: new Image(),
+};
+
+// Load texture images
+textures.water.src = 'textures/water.png';
+textures.sand.src = 'textures/sand.png';
+textures.grass.src = 'textures/grass.png';
+textures.mountain.src = 'textures/mountain.png';
+
+// Define the player object
+const player = {
+    x: Math.floor(worldWidth / 2 / tileSize), // Player starts in the middle of the world
+    y: Math.floor(worldHeight / 2 / tileSize),
+    width: 20,  // 1 tile wide
+    height: 20, // 1 tile high
+    speed: 3,   // Player speed (tiles per frame)
+    color: "#FF6347", // Player color (Red for now)
+};
+
+// Movement directions (for WASD or arrow keys)
+const directions = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+};
+
+// Listen for keyboard events to move the player
+document.addEventListener("keydown", (e) => {
+    if (e.key === "w" || e.key === "ArrowUp") directions.up = true;
+    if (e.key === "s" || e.key === "ArrowDown") directions.down = true;
+    if (e.key === "a" || e.key === "ArrowLeft") directions.left = true;
+    if (e.key === "d" || e.key === "ArrowRight") directions.right = true;
+});
+
+document.addEventListener("keyup", (e) => {
+    if (e.key === "w" || e.key === "ArrowUp") directions.up = false;
+    if (e.key === "s" || e.key === "ArrowDown") directions.down = false;
+    if (e.key === "a" || e.key === "ArrowLeft") directions.left = false;
+    if (e.key === "d" || e.key === "ArrowRight") directions.right = false;
+});
+
+// Function to generate the world and draw textures
+function generateWorld() {
+    let loadedCount = 0;
+    const totalTextures = Object.keys(textures).length;
+
+    // Check if all textures are loaded before drawing the world
+    for (const texture in textures) {
+        textures[texture].onload = () => {
+            loadedCount++;
+            if (loadedCount === totalTextures) {
+                drawWorld(); // Start drawing the world when all textures are loaded
+            }
+        };
+    }
+}
+
+// Draw the world once all textures are loaded
+function drawWorld() {
+    for (let y = 0; y < worldHeight / tileSize; y++) {
+        for (let x = 0; x < worldWidth / tileSize; x++) {
+            const noiseValue = perlin(x, y); // Generate a noise value for terrain
+            const terrainType = getTerrainType(noiseValue);
+            drawTile(x, y, terrainType); // Draw the tile with the appropriate texture
+        }
+    }
+
+    // Draw the player after the world is generated
+    drawPlayer();
+}
+
+// Determine terrain type based on Perlin noise value
+function getTerrainType(noiseValue) {
+    if (noiseValue < 0.2) {
+        return "water"; // Water
+    } else if (noiseValue < 0.4) {
+        return "sand"; // Sand
+    } else if (noiseValue < 0.7) {
+        return "grass"; // Grass
+    } else {
+        return "mountain"; // Mountains
+    }
+}
+
+// Draw a tile with the correct texture
+function drawTile(x, y, terrainType) {
+    const texture = textures[terrainType];
+    // Draw the texture on the tile
+    ctx.drawImage(texture, x * tileSize, y * tileSize, tileSize, tileSize);
+}
+
+// Draw the player on the screen
+function drawPlayer() {
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x * tileSize, player.y * tileSize, player.width, player.height);
+}
+
+// Update the player’s position based on input
+function updatePlayer() {
+    if (directions.up && player.y > 0) player.y -= player.speed;
+    if (directions.down && player.y < worldHeight / tileSize - 1) player.y += player.speed;
+    if (directions.left && player.x > 0) player.x -= player.speed;
+    if (directions.right && player.x < worldWidth / tileSize - 1) player.x += player.speed;
+}
+
+// Main game loop
+function gameLoop() {
+    // Clear the canvas to redraw the world and player
+    ctx.clearRect(0, 0, worldWidth, worldHeight);
+
+    // Update the player’s position
+    updatePlayer();
+
+    // Generate and draw the world, then draw the player on top
+    generateWorld();
+
+    // Continue the game loop
+    requestAnimationFrame(gameLoop);
+}
+
+// Start the game loop
+gameLoop();
+// stoneBlockMod.js: A simple mod that adds a new "stone" block.
+
+const stoneBlockMod = {
+    name: "Stone Block Mod",
+    description: "Adds a new stone block to the world.",
+
+    // Register the stone block texture
+    registerTextures: function(textures) {
+        textures.stone = new Image();
+        textures.stone.src = 'textures/stone.png'; // Ensure this texture exists in your folder
+    },
+
+    // Register the stone block in world generation
+    registerTerrainTypes: function(worldGen) {
+        worldGen.getTerrainType = function(noiseValue) {
+            if (noiseValue < 0.2) {
+                return "water"; // Water
+            } else if (noiseValue < 0.4) {
+                return "sand"; // Sand
+            } else if (noiseValue < 0.6) {
+                return "grass"; // Grass
+            } else if (noiseValue < 0.8) {
+                return "stone"; // New Stone block type
+            } else {
+                return "mountain"; // Mountains
+            }
+        };
+    },
+
+    // Function to add the stone block to the world
+    drawStoneBlock: function(x, y, ctx, tileSize) {
+        ctx.fillStyle = "#808080"; // Stone color
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+    }
+};
+
+// Export the mod object so the loader can access it
+export default stoneBlockMod;
+// modLoader.js: A system to load and apply mods to the game.
+
+const modLoader = {
+    mods: [],
+
+    // Add a mod to the mod system
+    loadMod: function(mod) {
+        this.mods.push(mod);
+        // Register textures and terrain types for the mod
+        mod.registerTextures(textures);
+        mod.registerTerrainTypes(worldGen);
+    },
+
+    // Initialize all mods
+    initializeMods: function() {
+        this.mods.forEach(mod => {
+            console.log(`Loading Mod: ${mod.name}`);
+            mod.registerTextures(textures);   // Register the textures of the mod
+            mod.registerTerrainTypes(worldGen); // Modify the world generation (e.g., adding new terrain)
+        });
+    }
+};
+
+// Initialize the mod system after the world is generated
+function initializeGameMods() {
+    modLoader.initializeMods();
+}
+
+// Example of loading the Stone Block Mod
+import stoneBlockMod from './stoneBlockMod.js';
+modLoader.loadMod(stoneBlockMod);
+// Modify the world generation to include the stone block
+
+function generateWorld() {
+    let loadedCount = 0;
+    const totalTextures = Object.keys(textures).length;
+
+    for (const texture in textures) {
+        textures[texture].onload = () => {
+            loadedCount++;
+            if (loadedCount === totalTextures) {
+                drawWorld(); // Start drawing the world when all textures are loaded
+            }
+        };
+    }
+}
+
+function drawWorld() {
+    for (let y = 0; y < worldHeight / tileSize; y++) {
+        for (let x = 0; x < worldWidth / tileSize; x++) {
+            const noiseValue = perlin(x, y);
+            const terrainType = worldGen.getTerrainType(noiseValue);  // Dynamically uses mods' terrain type
+            drawTile(x, y, terrainType); // Draw the tile with the appropriate texture
+        }
+    }
+
+    // Draw the player after the world is generated
+    drawPlayer();
+}
+
+// Handle stone block texture in the drawing logic
+function drawTile(x, y, terrainType) {
+    if (terrainType === "stone") {
+        stoneBlockMod.drawStoneBlock(x, y, ctx, tileSize); // Draw the stone block
+    } else {
+        const texture = textures[terrainType];
+        ctx.drawImage(texture, x * tileSize, y * tileSize, tileSize, tileSize); // Normal drawing logic for textures
+    }
+}
+// newTreeMod.js: A simple mod that adds a tree block.
+
+const newTreeMod = {
+    name: "Tree Mod",
+    description: "Adds a tree to the world.",
+
+    // Register tree texture
+    registerTextures: function(textures) {
+        textures.tree = new Image();
+        textures.tree.src = 'textures/tree.png'; // Ensure this texture exists in your folder
+    },
+
+    // Register tree block in world generation
+    registerTerrainTypes: function(worldGen) {
+        worldGen.getTerrainType = function(noiseValue) {
+            if (noiseValue < 0.4) {
+                return "grass"; // Grass
+            } else if (noiseValue < 0.6) {
+                return "tree"; // New Tree block
+            } else {
+                return "mountain"; // Mountains
+            }
+        };
+    },
+
+    // Draw the tree block
+    drawTree: function(x, y, ctx, tileSize) {
+        ctx.fillStyle = "#228B22"; // Tree green
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize); // Drawing a simple tree block
+    }
+};
+
+// Export the mod so it can be loaded
+export default newTreeMod;
