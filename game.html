@@ -960,3 +960,193 @@ const newTreeMod = {
 
 // Export the mod so it can be loaded
 export default newTreeMod;
+// Get the canvas and its context
+const canvas = document.getElementById("worldCanvas");
+const ctx = canvas.getContext("2d");
+
+const tileSize = 20; // Size of each tile (20x20px)
+const worldWidth = 800; // Width of the world in pixels
+const worldHeight = 600; // Height of the world in pixels
+
+canvas.width = worldWidth;
+canvas.height = worldHeight;
+
+// Load textures for each terrain type
+const textures = {
+    water: new Image(),
+    sand: new Image(),
+    grass: new Image(),
+    mountain: new Image(),
+    stone: new Image(),  // New Stone Texture
+    tree: new Image()    // New Tree Texture
+};
+
+// Load texture images
+textures.water.src = 'textures/water.png';
+textures.sand.src = 'textures/sand.png';
+textures.grass.src = 'textures/grass.png';
+textures.mountain.src = 'textures/mountain.png';
+textures.stone.src = 'textures/stone.png';
+textures.tree.src = 'textures/tree.png';
+
+// Define the player object
+const player = {
+    x: Math.floor(worldWidth / 2 / tileSize), // Player starts in the middle of the world
+    y: Math.floor(worldHeight / 2 / tileSize),
+    z: 0,   // Player's vertical position (can be used for jumping or flying)
+    width: 20,  // 1 tile wide
+    height: 20, // 1 tile high
+    speed: 3,   // Player speed (tiles per frame)
+    color: "#FF6347", // Player color (Red for now)
+    rotation: 0,  // Rotation angle for first-person view (camera angle)
+};
+
+// Movement directions (WASD or arrow keys)
+const directions = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+};
+
+// Mouse control settings
+let mouseX = 0;
+let mouseY = 0;
+let mouseDown = false;
+
+// Listen for keyboard events to move the player
+document.addEventListener("keydown", (e) => {
+    if (e.key === "w" || e.key === "ArrowUp") directions.up = true;
+    if (e.key === "s" || e.key === "ArrowDown") directions.down = true;
+    if (e.key === "a" || e.key === "ArrowLeft") directions.left = true;
+    if (e.key === "d" || e.key === "ArrowRight") directions.right = true;
+});
+
+document.addEventListener("keyup", (e) => {
+    if (e.key === "w" || e.key === "ArrowUp") directions.up = false;
+    if (e.key === "s" || e.key === "ArrowDown") directions.down = false;
+    if (e.key === "a" || e.key === "ArrowLeft") directions.left = false;
+    if (e.key === "d" || e.key === "ArrowRight") directions.right = false;
+});
+
+// Listen for mouse movement to rotate the camera (view)
+document.addEventListener("mousemove", (e) => {
+    if (mouseDown) {
+        const sensitivity = 0.1;
+        const deltaX = e.clientX - mouseX;
+        const deltaY = e.clientY - mouseY;
+
+        // Update rotation based on mouse movement
+        player.rotation -= deltaX * sensitivity;
+
+        // Update mouse position
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    }
+});
+
+// Listen for mouse click to toggle camera rotation
+canvas.addEventListener("mousedown", (e) => {
+    mouseDown = true;
+});
+
+canvas.addEventListener("mouseup", (e) => {
+    mouseDown = false;
+});
+
+// Function to generate the world and draw textures
+function generateWorld() {
+    let loadedCount = 0;
+    const totalTextures = Object.keys(textures).length;
+
+    // Check if all textures are loaded before drawing the world
+    for (const texture in textures) {
+        textures[texture].onload = () => {
+            loadedCount++;
+            if (loadedCount === totalTextures) {
+                drawWorld(); // Start drawing the world when all textures are loaded
+            }
+        };
+    }
+}
+
+// Draw the world once all textures are loaded
+function drawWorld() {
+    for (let y = 0; y < worldHeight / tileSize; y++) {
+        for (let x = 0; x < worldWidth / tileSize; x++) {
+            const noiseValue = perlin(x, y); // Generate a noise value for terrain
+            const terrainType = getTerrainType(noiseValue);
+            drawTile(x, y, terrainType); // Draw the tile with the appropriate texture
+        }
+    }
+
+    // Draw the player after the world is generated
+    drawPlayer();
+}
+
+// Determine terrain type based on Perlin noise value
+function getTerrainType(noiseValue) {
+    if (noiseValue < 0.2) {
+        return "water"; // Water
+    } else if (noiseValue < 0.4) {
+        return "sand"; // Sand
+    } else if (noiseValue < 0.6) {
+        return "grass"; // Grass
+    } else if (noiseValue < 0.8) {
+        return "stone"; // Stone
+    } else {
+        return "mountain"; // Mountains
+    }
+}
+
+// Draw a tile with the correct texture
+function drawTile(x, y, terrainType) {
+    const texture = textures[terrainType];
+    ctx.drawImage(texture, x * tileSize, y * tileSize, tileSize, tileSize);
+}
+
+// Draw the player on the screen
+function drawPlayer() {
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x * tileSize, player.y * tileSize, player.width, player.height);
+}
+
+// Update the player's position based on input
+function updatePlayer() {
+    const angle = player.rotation * Math.PI / 180;
+
+    if (directions.up) {
+        player.x += Math.cos(angle) * player.speed;
+        player.y += Math.sin(angle) * player.speed;
+    }
+    if (directions.down) {
+        player.x -= Math.cos(angle) * player.speed;
+        player.y -= Math.sin(angle) * player.speed;
+    }
+    if (directions.left) {
+        player.x -= Math.cos(angle + Math.PI / 2) * player.speed;
+        player.y -= Math.sin(angle + Math.PI / 2) * player.speed;
+    }
+    if (directions.right) {
+        player.x += Math.cos(angle + Math.PI / 2) * player.speed;
+        player.y += Math.sin(angle + Math.PI / 2) * player.speed;
+    }
+}
+
+// Main game loop
+function gameLoop() {
+    // Clear the canvas to redraw the world and player
+    ctx.clearRect(0, 0, worldWidth, worldHeight);
+
+    // Update the player’s position
+    updatePlayer();
+
+    // Generate and draw the world, then draw the player on top
+    generateWorld();
+
+    // Continue the game loop
+    requestAnimationFrame(gameLoop);
+}
+
+// Start the game loop
+gameLoop();
