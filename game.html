@@ -1,417 +1,252 @@
-const express = require('express');
-const app = express();
-
-app.get('/', (req, res) => {
-    res.redirect('https://example.com');
-});
-
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-});<!DOCTYPE html> <html> <head> <script type="text/javascript"> // Redirect after 3 seconds setTimeout(function(){ window.location.href = 'https://example.com'; }, 3000); </script> </head> <body> <p>You will be redirected to example.com in 3 seconds.</p> </body> </html>
-import org.lwjgl.*;
-import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
-import org.lwjgl.system.*;
-
-import java.nio.*;
-import org.lwjgl.util.vector.*;
-
-import static org.lwjgl.glfw.Callbacks.*;
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.*;
-import static org.lwjgl.system.MemoryStack.*;
-import static org.lwjgl.system.MemoryUtil.*;
-
-public class MinecraftLike3D {
-
-    private long window;
-    private int width = 800, height = 600;
-    private int textureID;
-    private int terrainWidth = 10;
-    private int terrainHeight = 10;
-    
-    // Camera and movement
-    private float xPos = 0, yPos = 1, zPos = 5;
-    private float pitch = 0, yaw = 0;
-
-    public void init() {
-        if (!glfwInit()) {
-            throw new IllegalStateException("Unable to initialize GLFW");
-        }
-
-        window = glfwCreateWindow(width, height, "Minecraft-like 3D Game", NULL, NULL);
-        if (window == NULL) {
-            throw new RuntimeException("Failed to create the GLFW window");
-        }
-
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
-        glfwShowWindow(window);
-
-        GL.createCapabilities();
-
-        glEnable(GL_DEPTH_TEST);
-        textureID = loadTexture("grass_block.png"); // Load texture for blocks
-    }
-
-    public void loop() {
-        while (!glfwWindowShouldClose(window)) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the screen
-
-            // Update camera (movement controls)
-            updateCamera();
-
-            // Render the terrain (blocks in a grid)
-            renderTerrain();
-
-            // Swap buffers and poll events
-            glfwSwapBuffers(window);
-            glfwPollEvents();
-        }
-    }
-
-    private void renderTerrain() {
-        for (int x = 0; x < terrainWidth; x++) {
-            for (int z = 0; z < terrainHeight; z++) {
-                // Draw a block at the position
-                drawBlock(x, 0, z, 1);
-            }
-        }
-    }
-
-    private void drawBlock(float x, float y, float z, float size) {
-        glPushMatrix();
-        glTranslatef(x, y, z);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
-        glBegin(GL_QUADS);
-
-        // Front face
-        glColor3f(1, 1, 1); // Default white (using texture)
-        glTexCoord2f(0, 0); glVertex3f(-size, -size, size);
-        glTexCoord2f(1, 0); glVertex3f(size, -size, size);
-        glTexCoord2f(1, 1); glVertex3f(size, size, size);
-        glTexCoord2f(0, 1); glVertex3f(-size, size, size);
-
-        // Back face
-        glTexCoord2f(0, 0); glVertex3f(-size, -size, -size);
-        glTexCoord2f(1, 0); glVertex3f(-size, size, -size);
-        glTexCoord2f(1, 1); glVertex3f(size, size, -size);
-        glTexCoord2f(0, 1); glVertex3f(size, -size, -size);
-
-        // Left face
-        glTexCoord2f(0, 0); glVertex3f(-size, -size, -size);
-        glTexCoord2f(1, 0); glVertex3f(-size, -size, size);
-        glTexCoord2f(1, 1); glVertex3f(-size, size, size);
-        glTexCoord2f(0, 1); glVertex3f(-size, size, -size);
-
-        // Right face
-        glTexCoord2f(0, 0); glVertex3f(size, -size, -size);
-        glTexCoord2f(1, 0); glVertex3f(size, size, -size);
-        glTexCoord2f(1, 1); glVertex3f(size, size, size);
-        glTexCoord2f(0, 1); glVertex3f(size, -size, size);
-
-        // Top face
-        glTexCoord2f(0, 0); glVertex3f(-size, size, -size);
-        glTexCoord2f(1, 0); glVertex3f(-size, size, size);
-        glTexCoord2f(1, 1); glVertex3f(size, size, size);
-        glTexCoord2f(0, 1); glVertex3f(size, size, -size);
-
-        // Bottom face
-        glTexCoord2f(0, 0); glVertex3f(-size, -size, -size);
-        glTexCoord2f(1, 0); glVertex3f(size, -size, -size);
-        glTexCoord2f(1, 1); glVertex3f(size, -size, size);
-        glTexCoord2f(0, 1); glVertex3f(-size, -size, size);
-
-        glEnd();
-        glPopMatrix();
-    }
-
-    private int loadTexture(String texturePath) {
-        try {
-            // Load texture from file (grass_block.png)
-            int textureID = glGenTextures();
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            
-            // Load image into memory (you can use libraries like STB to load the image)
-            // For simplicity, assume we have a method to load texture as byte buffer
-            // Use an external library like STBImage for texture loading (not covered here)
-            
-            return textureID;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-
-    private void updateCamera() {
-        // Apply simple movement (WASD)
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            zPos -= 0.1f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            zPos += 0.1f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            xPos -= 0.1f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            xPos += 0.1f;
-        }
-
-        // Apply simple pitch and yaw based on mouse movement
-        double[] xPos = new double[1], yPos = new double[1];
-        glfwGetCursorPos(window, xPos, yPos);
-        float mouseX = (float) xPos[0];
-        float mouseY = (float) yPos[0];
-
-        yaw = mouseX * 0.1f;
-        pitch = mouseY * 0.1f;
-
-        // Apply camera transformations
-        glRotatef(pitch, 1.0f, 0.0f, 0.0f);
-        glRotatef(yaw, 0.0f, 1.0f, 0.0f);
-        glTranslatef(-xPos, -yPos, -zPos);
-    }
-
-    public static void main(String[] args) {
-        MinecraftLike3D game = new MinecraftLike3D();
-        game.init();
-        game.loop();
-    }
-}
-glEnable(GL_DEBUG_OUTPUT);
-glDebugMessageCallback((source, type, id, severity, length, message, userParam) -> {
-    // Optionally, you can log or handle the debug messages here
-}, NULL);
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-
-public class MinecraftLikeGame extends JPanel {
-
-    // Game Constants
-    static final int BLOCK_SIZE = 50;
-    static final int PLAYER_SIZE = 50;
-    static final int WINDOW_WIDTH = 800;
-    static final int WINDOW_HEIGHT = 600;
-
-    // Player and world properties
-    int playerX = WINDOW_WIDTH / 2;
-    int playerY = WINDOW_HEIGHT / 2;
-    int playerSpeed = 5;
-
-    // World representation (list of blocks)
-    ArrayList<Block> world = new ArrayList<>();
-
-    public MinecraftLikeGame() {
-        // Initialize world with ground blocks
-        for (int x = 0; x < WINDOW_WIDTH; x += BLOCK_SIZE) {
-            for (int y = WINDOW_HEIGHT - 100; y < WINDOW_HEIGHT; y += BLOCK_SIZE) {
-                world.add(new Block(x, y, Color.BROWN)); // Ground blocks
-            }
-        }
-
-        // KeyListener for player movement
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-                    playerX -= playerSpeed;
-                } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                    playerX += playerSpeed;
-                } else if (e.getKeyCode() == KeyEvent.VK_UP) {
-                    playerY -= playerSpeed;
-                } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-                    playerY += playerSpeed;
-                }
-
-                // Prevent player from going out of bounds
-                playerX = Math.max(0, Math.min(WINDOW_WIDTH - PLAYER_SIZE, playerX));
-                playerY = Math.max(0, Math.min(WINDOW_HEIGHT - PLAYER_SIZE, playerY));
-                repaint();
-            }
-        });
-
-        // MouseListener for block placement/removal
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int mouseX = e.getX();
-                int mouseY = e.getY();
-
-                // Find which block is clicked
-                for (Block block : world) {
-                    if (block.isClicked(mouseX, mouseY)) {
-                        block.toggle(); // Toggle block color (removal/addition)
-                        break;
-                    }
-                }
-                repaint();
-            }
-        });
-
-        setFocusable(true);
-    }
-
-    // Method to draw the world and player
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-
-        // Draw the world (blocks)
-        for (Block block : world) {
-            block.draw(g);
-        }
-
-        // Draw the player
-        g.setColor(Color.GREEN); // Player color
-        g.fillRect(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
-    }
-
-    // Block class to represent each block
-    class Block {
-        int x, y;
-        Color color;
-
-        Block(int x, int y, Color color) {
-            this.x = x;
-            this.y = y;
-            this.color = color;
-        }
-
-        void draw(Graphics g) {
-            g.setColor(color);
-            g.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
-        }
-
-        boolean isClicked(int mouseX, int mouseY) {
-            return mouseX >= x && mouseX <= x + BLOCK_SIZE && mouseY >= y && mouseY <= y + BLOCK_SIZE;
-        }
-
-        void toggle() {
-            // Toggle between sky (blue) and ground (brown)
-            color = (color == Color.BROWN) ? Color.CYAN : Color.BROWN;
-        }
-    }
-
-    // Main method to run the game
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("Minecraft-like Game");
-        MinecraftLikeGame gamePanel = new MinecraftLikeGame();
-
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        frame.add(gamePanel);
-        frame.setVisible(true);
-    }
-}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft-like Game</title>
+    <title>Simple Minecraft-like Game</title>
     <style>
         body { margin: 0; overflow: hidden; }
-        canvas { display: block; background-color: #87CEEB; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Setup canvas and context
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
+        const canvas = document.getElementById('gameCanvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas });
 
-        // Canvas size
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-        // Block size and player properties
-        const blockSize = 50;
-        const playerSize = 50;
-        let playerX = canvas.width / 2;
-        let playerY = canvas.height / 2;
-        let playerSpeed = 5;
+        // Basic Cube (for simplicity, representing a block)
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
 
-        // Simple world (array of blocks)
-        let world = [];
+        camera.position.z = 5;
 
-        // Generate simple flat world (ground blocks)
-        for (let x = 0; x < canvas.width; x += blockSize) {
-            for (let y = canvas.height - 100; y < canvas.height; y += blockSize) {
-                world.push({ x: x, y: y, color: "#8B4513" }); // Ground blocks
-            }
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
         }
 
-        // Function to draw the world (blocks)
-        function drawWorld() {
-            world.forEach(block => {
-                ctx.fillStyle = block.color;
-                ctx.fillRect(block.x, block.y, blockSize, blockSize);
-            });
-        }
-
-        // Function to draw the player
-        function drawPlayer() {
-            ctx.fillStyle = "#228B22"; // Green player
-            ctx.fillRect(playerX, playerY, playerSize, playerSize);
-        }
-
-        // Function to move the player
-        function movePlayer() {
-            if (keys["ArrowLeft"]) playerX -= playerSpeed;
-            if (keys["ArrowRight"]) playerX += playerSpeed;
-            if (keys["ArrowUp"]) playerY -= playerSpeed;
-            if (keys["ArrowDown"]) playerY += playerSpeed;
-
-            // Prevent player from going out of bounds
-            if (playerX < 0) playerX = 0;
-            if (playerX > canvas.width - playerSize) playerX = canvas.width - playerSize;
-            if (playerY < 0) playerY = 0;
-            if (playerY > canvas.height - playerSize) playerY = canvas.height - playerSize;
-        }
-
-        // Handle keyboard input
-        let keys = {};
-        window.addEventListener("keydown", (e) => {
-            keys[e.key] = true;
-        });
-        window.addEventListener("keyup", (e) => {
-            keys[e.key] = false;
-        });
-
-        // Handle mouse click to add/remove blocks
-        canvas.addEventListener("click", (e) => {
-            let mouseX = e.clientX;
-            let mouseY = e.clientY;
-            // Find the grid position for the block clicked
-            let blockX = Math.floor(mouseX / blockSize) * blockSize;
-            let blockY = Math.floor(mouseY / blockSize) * blockSize;
-
-            // Toggle block color (add or remove)
-            let block = world.find(b => b.x === blockX && b.y === blockY);
-            if (block) {
-                block.color = block.color === "#8B4513" ? "#87CEEB" : "#8B4513"; // Toggle between ground and sky
-            }
-        });
-
-        // Game loop
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-            drawWorld(); // Draw the world
-            drawPlayer(); // Draw the player
-            movePlayer(); // Move the player
-            requestAnimationFrame(gameLoop); // Loop the game
-        }
-
-        gameLoop(); // Start the game loop
+        animate();
     </script>
 </body>
 </html>
+#include <iostream>
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/server.hpp>
+
+typedef websocketpp::server<websocketpp::config::asio> server;
+
+void on_message(server* s, websocketpp::connection_hdl hdl, server::message_ptr msg) {
+    s->send(hdl, "Hello from C++ server", websocketpp::frame::opcode::text);
+}
+
+int main() {
+    server echo_server;
+
+    echo_server.init_asio();
+    echo_server.set_message_handler(&on_message);
+
+    echo_server.listen(9002);
+    echo_server.start_accept();
+
+    std::cout << "Server started..." << std::endl;
+    echo_server.run();
+}
+pip install pyphen
+import pyphen
+
+# Create a Pyphen object for the English language
+dic = pyphen.Pyphen(lang='en')
+
+# Sample word to hyphenate
+word = "Minecraft"
+
+# Get the hyphenated word
+hyphenated_word = dic.inserted(word)
+
+print(hyphenated_word)  # Outputs: Mine-craft
+from flask import Flask, jsonify, request
+import pyphen
+
+app = Flask(__name__)
+dic = pyphen.Pyphen(lang='en')
+
+@app.route('/hyphenate', methods=['GET'])
+def hyphenate_text():
+    text = request.args.get('text', '')
+    hyphenated_text = dic.inserted(text)
+    return jsonify({"hyphenated_text": hyphenated_text})
+
+if __name__ == "__main__":
+    app.run(debug=True)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyphenation Example</title>
+</head>
+<body>
+    <h1>Text Hyphenation</h1>
+    <input type="text" id="inputText" placeholder="Enter text">
+    <button onclick="hyphenate()">Hyphenate</button>
+    <p>Hyphenated Text: <span id="hyphenatedText"></span></p>
+
+    <script>
+        function hyphenate() {
+            const inputText = document.getElementById("inputText").value;
+            fetch(`http://127.0.0.1:5000/hyphenate?text=${inputText}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("hyphenatedText").innerText = data.hyphenated_text;
+                });
+        }
+    </script>
+</body>
+</html>
+npm init -y
+npm install --save-dev typescript
+npx tsc --init
+npm install --save-dev @types/three
+import * as THREE from 'three';
+
+// Initialize scene, camera, and renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Create a cube (a block in Minecraft)
+const geometry = new THREE.BoxGeometry();
+const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const cube = new THREE.Mesh(geometry, material);
+scene.add(cube);
+
+// Set camera position
+camera.position.z = 5;
+
+// Animation loop to rotate the cube
+function animate() {
+    requestAnimationFrame(animate);
+
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+
+    renderer.render(scene, camera);
+}
+
+// Start the animation
+animate();
+npx tsc game.ts
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft-like Game with TypeScript</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="game.js"></script>
+</body>
+</html>
+npm install --save-dev http-server
+npx http-server
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua in the Browser</title>
+    <script src="https://unpkg.com/fengari-web"></script>
+</head>
+<body>
+    <h1>Lua in the Browser</h1>
+    <button onclick="runLua()">Run Lua Script</button>
+    <p>Output:</p>
+    <pre id="output"></pre>
+
+    <script>
+        function runLua() {
+            const
+-- Define basic properties
+local player = {
+    x = 100,
+    y = 100,
+    speed = 200
+}
+
+-- Love2D's 'love.load' function is called once at the beginning
+function love.load()
+    -- Set window dimensions
+    love.window.setMode(800, 600)
+end
+
+-- Love2D's 'love.update' function runs every frame
+function love.update(dt)
+    -- Move player with keyboard input
+    if love.keyboard.isDown('right') then
+        player.x = player.x + player.speed * dt
+    elseif love.keyboard.isDown('left') then
+        player.x = player.x - player.speed * dt
+    end
+
+    if love.keyboard.isDown('down') then
+        player.y = player.y + player.speed * dt
+    elseif love.keyboard.isDown('up') then
+        player.y = player.y - player.speed * dt
+    end
+end
+
+-- Love2D's 'love.draw' function renders everything each frame
+function love.draw()
+    -- Draw player as a simple rectangle
+    love.graphics.rectangle('fill', player.x, player.y, 50, 50)
+end
+#include <iostream>
+#include <lua.hpp>
+
+int main() {
+    // Create a Lua state
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    // Lua script to execute
+    const char* script = R"(
+        print("Hello from Lua!")
+        player_speed = 100
+    )";
+
+    // Execute Lua code
+    if (luaL_dostring(L, script)) {
+        std::cerr << "Error: " << lua_tostring(L, -1) << std::endl;
+    }
+
+    // Access a Lua variable (player_speed)
+    lua_getglobal(L, "player_speed");
+    if (lua_isnumber(L, -1)) {
+        int speed = lua_tointeger(L, -1);
+        std::cout << "Player speed: " << speed << std::endl;
+    }
+
+    // Close Lua
+    lua_close(L);
+
+    return 0;
+}
+
